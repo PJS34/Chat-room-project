@@ -29,8 +29,8 @@ namespace Projet
             this.port = port;
             ConnectedUsers = new Dictionary<Profile, Receiver>();
             ListTopics = new Dictionary<String, List<Receiver>>();
-            //newTopic("C#");
-            //newTopic("Programming");
+           // newTopic("C#");
+           // newTopic("Programming");
             //SerializeTopicList();
             DeserializeTopicList();
 
@@ -38,20 +38,30 @@ namespace Projet
         }
         public void SerializeTopicList()
         {
+            List<String> ListTopicsName = new List<String>();
+            //ListTopicsName = ListTopics.Keys;
+            foreach (String s in ListTopics.Keys)
+            {
+                ListTopicsName.Add(s);
+            }
+           
             IFormatter formater = new BinaryFormatter();
             Stream stream = new FileStream("D:\\EFREI\\S7\\C#\\Projet\\AllTopics.txt", FileMode.Create, FileAccess.Write);
-            formater.Serialize(stream, ListTopics);
+            formater.Serialize(stream, ListTopicsName);
             stream.Close();
 
         }
         public void DeserializeTopicList()
         {
+            ListTopics.Clear();
+            List<String> ListTopicsName = new List<String>();
             IFormatter formater = new BinaryFormatter();
             Stream stream = new FileStream("D:\\EFREI\\S7\\C#\\Projet\\AllTopics.txt", FileMode.Open, FileAccess.Read);
-            ListTopics = (Dictionary<String, List<Receiver>>)formater.Deserialize(stream);
-            foreach (String topic in ListTopics.Keys)
+            ListTopicsName = (List<String>)formater.Deserialize(stream);
+            foreach (String topic in ListTopicsName)
             {
-                ListTopics[topic].Clear();
+                List<Receiver> UserByTopic = new List<Receiver>();
+                ListTopics.Add(topic, UserByTopic);
             }
             stream.Close();
 
@@ -60,7 +70,7 @@ namespace Projet
         {
             List<Receiver> usersByTopic = new List<Receiver>();
             ListTopics.Add(name, usersByTopic);
-
+            SerializeTopicList();
         }
 
 
@@ -96,10 +106,10 @@ namespace Projet
         {
             TcpListener l = new TcpListener(new IPAddress(new byte[] { 127, 0, 0, 1 }), port);
             l.Start();
-
+            Console.WriteLine("Stating the server");
             while (true)
             {
-
+                
                 TcpClient comm = l.AcceptTcpClient();
                 Profile newProfileConnected = Net.RcvIdentity(comm.GetStream());
                 Console.WriteLine("Connection established with @" + newProfileConnected.Username);

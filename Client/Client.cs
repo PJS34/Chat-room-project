@@ -43,9 +43,9 @@ namespace Client
         {
 
             ProfilsContainer profils = new ProfilsContainer();
-            /*profils.add(new Profile("Julien", "Julien"));
-            profils.add(new Profile("Greg", "Greg"));
-             profils.SerializeProfileList();*/
+           // profils.add(new Profile("Julien", "Julien"));
+            //profils.add(new Profile("Greg", "Greg"));
+            // profils.SerializeProfileList();
 
             profils.Deserialize();
             Profile tryProfile;
@@ -77,36 +77,50 @@ namespace Client
                     //choose a topic
                     //displayAllTopics, passer par la serialization deserialization dans un fichier txt
                     displayAllTopics();
+                     Destination = Console.ReadLine();
                     //Please use the Dest String
+                    comm = new TcpClient(hostname, port);
+                    //Send identity, la recevoir dans server avant de lancer le thread. Devra surement etre synchronize.
+                    Net.SendIdentity(comm.GetStream(), tryProfile);
+                    Console.WriteLine("Connection established");
 
+
+                    //Lance la reception des messages
+                    SendingMessageTopic(tryProfile);
 
                     break;
                 case "B":
+                    comm = new TcpClient(hostname, port);
+                    //Send identity, la recevoir dans server avant de lancer le thread. Devra surement etre synchronize.
+                    Net.SendIdentity(comm.GetStream(), tryProfile);
+                    Console.WriteLine("Connection established");
+
+
+                    //Lance la reception des messages
+                    SendingPersonalMesage(tryProfile);
                     //Choose a user
                     break;
                 default:
                     Console.WriteLine("Invalide");
                     break;
             }
-            comm = new TcpClient(hostname, port);
-            //Send identity, la recevoir dans server avant de lancer le thread. Devra surement etre synchronize.
-            Net.SendIdentity(comm.GetStream(), tryProfile);
-            Console.WriteLine("Connection established");
+          
+        }
 
-
-            //Lance la reception des messages
-            SendingMessageTopic(tryProfile);
+        private void SendingPersonalMesage(Profile tryProfile)
+        {
+            throw new NotImplementedException();
         }
 
         private void displayAllTopics()
         {
-            List<String> Topics = new List<string>();
+            List<String> Topics = new List<String>();
             IFormatter formater = new BinaryFormatter();
             Stream stream = new FileStream("D:\\EFREI\\S7\\C#\\Projet\\AllTopics.txt", FileMode.Open, FileAccess.Read);
-            ListTopics = (Dictionary<String, List<Receiver>>)formater.Deserialize(stream);
-            foreach (String topic in ListTopics.Keys)
+            Topics = (List<String>)formater.Deserialize(stream);
+            foreach (String topic in Topics)
             {
-                ListTopics[topic].Clear();
+                Console.WriteLine(topic);
             }
             stream.Close();
 
@@ -119,7 +133,7 @@ namespace Client
             while (true)
             {
                 string message = Console.ReadLine();
-                Message msg = new Message(message, tryProfile.Username);
+                Message msg = new TopicMessage(message, tryProfile.Username,Destination);
                 Net.SendMsg(comm.GetStream(), msg);
             }
         }
