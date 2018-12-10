@@ -2,22 +2,25 @@
 using Communication;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net.Sockets;
+using System.Runtime.Serialization;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace Client
 {
-    enum TypeMessage { PM, Topic}
+    enum TypeMessage { PM, Topic }
     [Serializable]
     public class Client
     {
         private string hostname;
         private int port;
         private String Destination;
-       
+
         private TcpClient comm;
         public Client(string h, int p)
         {
@@ -73,6 +76,7 @@ namespace Client
                     Console.WriteLine("Please choose a topic : ");
                     //choose a topic
                     //displayAllTopics, passer par la serialization deserialization dans un fichier txt
+                    displayAllTopics();
                     //Please use the Dest String
 
 
@@ -80,7 +84,7 @@ namespace Client
                 case "B":
                     //Choose a user
                     break;
-                default: 
+                default:
                     Console.WriteLine("Invalide");
                     break;
             }
@@ -92,6 +96,21 @@ namespace Client
 
             //Lance la reception des messages
             SendingMessageTopic(tryProfile);
+        }
+
+        private void displayAllTopics()
+        {
+            List<String> Topics = new List<string>();
+            IFormatter formater = new BinaryFormatter();
+            Stream stream = new FileStream("D:\\EFREI\\S7\\C#\\Projet\\AllTopics.txt", FileMode.Open, FileAccess.Read);
+            ListTopics = (Dictionary<String, List<Receiver>>)formater.Deserialize(stream);
+            foreach (String topic in ListTopics.Keys)
+            {
+                ListTopics[topic].Clear();
+            }
+            stream.Close();
+
+
         }
 
         private void SendingMessageTopic(Profile tryProfile)
@@ -109,12 +128,12 @@ namespace Client
         {
             string name;
             string psw;
-            Console.Write("Your name : ") ;
+            Console.Write("Your name : ");
             name = Console.ReadLine();
             Console.WriteLine();
             Console.Write("Your password  : ");
             psw = Console.ReadLine();
-            Profile  p = new Profile(name,psw);
+            Profile p = new Profile(name, psw);
             profils.add(p);
             profils.SerializeProfileList();
             return p;
