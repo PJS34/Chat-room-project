@@ -74,17 +74,15 @@ namespace Projet
         }
 
 
-        public static void SendRedirect(Message msg)
-        {
-            //Use message polymorphism
-        }
+   
 
-        public static void BroadcastByTopic(Message msg, String topic)
+        public static void BroadcastByTopic(TopicMessage msg)
         {
-            if (ListTopics.ContainsKey(topic))
+
+            if (ListTopics.ContainsKey(msg.TopicName))
             {
 
-                foreach (Receiver User in ListTopics["topic"])
+                foreach (Receiver User in ListTopics[msg.TopicName])
                 {
                     Net.SendMsg(User.Comm.GetStream(), msg);
                 }

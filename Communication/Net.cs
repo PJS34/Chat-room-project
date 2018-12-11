@@ -12,7 +12,10 @@ namespace Communication
     {
         
         
+        public static void SendAuth(Stream s, Profile P)
+        {
 
+        }
         public static void SendIdentity(Stream s, Profile Profile)
         {
             BinaryFormatter bf = new BinaryFormatter();

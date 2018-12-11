@@ -6,10 +6,11 @@ using System.Threading.Tasks;
 
 namespace Communication
 {
+    [Serializable]
     public class TopicMessage : Message
     {
         private string topicName;
-        public TopicMessage(string msg, string name,string ToName) : base(msg, name)
+        public TopicMessage(string msg, Profile p,string ToName) : base(msg, p)
         {
             this.topicName = ToName;
         }

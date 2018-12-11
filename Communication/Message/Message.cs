@@ -5,25 +5,27 @@ using System.Text;
 using System.Threading.Tasks;
 namespace Communication
 {
-  
+  //  public enum MessageRole {REGISTER,LOGIN,MESSAGE};
     [Serializable]
     public class Message
     {
 
         private string msg;
-        private string name;
-
-        public Message(string msg, string name)
+        private Profile p;
+     
+        public Message(string msg, Profile p)
         {
             this.msg = msg;
-            this.name = name;
+            this.p = p;
+            
         }
 
         public string Msg { get => msg; set => msg = value; }
-        public string Name { get => name; set => name = value; }
+        public Profile P { get => p; set => p = value; }
+
         public override string ToString()
         {
-            return msg + "    " + name;
+            return msg + "    " + p.ToString();
         }
     }
 }

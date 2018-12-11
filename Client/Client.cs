@@ -36,16 +36,16 @@ namespace Client
                 Message msg = Net.rcvMsg(comm.GetStream());
 
                 //Console.WriteLine(msg);
-                Console.WriteLine(msg.Name + " says : " + msg.Msg);
+                Console.WriteLine(msg.P.Username + " says : " + msg.Msg);
             }
         }
         public void start()
         {
 
             ProfilsContainer profils = new ProfilsContainer();
-           // profils.add(new Profile("Julien", "Julien"));
-            //profils.add(new Profile("Greg", "Greg"));
-            // profils.SerializeProfileList();
+           /* profils.add(new Profile("Julien", "Julien"));
+            profils.add(new Profile("Greg", "Greg"));
+            profils.SerializeProfileList();*/
 
             profils.Deserialize();
             Profile tryProfile;
@@ -57,10 +57,13 @@ namespace Client
             } while (!choix.Equals("yes") && !choix.Equals("no"));
             if (choix.Equals("yes"))
             {
+              
                 tryProfile = Identification(profils);
+
             }
             else
             {
+
                 tryProfile = ProfileRegister(profils);
             }
 
@@ -130,10 +133,11 @@ namespace Client
         private void SendingMessageTopic(Profile tryProfile)
         {
             new Thread(RecieveMessage).Start();
+            //send
             while (true)
             {
                 string message = Console.ReadLine();
-                Message msg = new TopicMessage(message, tryProfile.Username,Destination);
+                Message msg = new TopicMessage(message, tryProfile,Destination);
                 Net.SendMsg(comm.GetStream(), msg);
             }
         }

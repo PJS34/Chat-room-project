@@ -6,10 +6,11 @@ using System.Threading.Tasks;
 
 namespace Communication
 {
+    [Serializable]
     public class Private_Message : Message
     {
         private string NameDest;
-        public Private_Message(string msg, string name, string UserDest) : base(msg, name)
+        public Private_Message(string msg, Profile p, string UserDest) : base(msg, p)
         {
             this.NameDest = UserDest;
         }

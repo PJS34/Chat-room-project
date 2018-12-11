@@ -24,12 +24,24 @@ namespace Projet
             Console.WriteLine("A new user joined the room");
             while (true)
             {
-
+                
                 Message msg = Net.rcvMsg(comm.GetStream());
                 //Renvoyer a tlm avec la liste dans server
                 // Console.WriteLine(msg);
-               // Console.WriteLine(msg.Name + " says : " + msg.Msg);
-                Server.BroadcastTheMessage(msg);
+                // Console.WriteLine(msg.Name + " says : " + msg.Msg);
+                //Use message polymorphism
+                if (msg.GetType().Equals(typeof(TopicMessage)))
+                {
+                    TopicMessage msgTopic = (TopicMessage)msg;
+                    //ListTopics[msgTopic.TopicName]
+                    Server.BroadcastByTopic(msgTopic);
+                }
+                else
+                {
+                    Console.WriteLine("pasbla");
+                }
+              
+                //Server.BroadcastTheMessage(msg);
 
 
             }
