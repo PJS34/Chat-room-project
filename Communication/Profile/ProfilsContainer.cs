@@ -45,6 +45,17 @@ namespace Communication
         {
             return profilesList.Contains(p);
         }
+        public Boolean CheckPossiblRegister(String name)
+        {
+            foreach(Profile p in profilesList)
+            {
+                if (name.Equals(p.Username))
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
         public override string ToString()
         {
             StringBuilder str = new StringBuilder();

@@ -17,11 +17,20 @@ namespace Projet
     public class Server
     {
         private int port;
+       private static ProfilsContainer profils = new ProfilsContainer();
+        /* profils.add(new Profile("Julien", "Julien"));
+         profils.add(new Profile("Greg", "Greg"));
+         profils.SerializeProfileList();*/
+
+        
         // private static List<Receiver> ConnectedUsers;
         private static Dictionary<Profile, Receiver> ConnectedUsers;
         private static Dictionary<String, List<Receiver>> ListTopics;
 
         public static Dictionary<String, List<Receiver>> _ListTopics { get => ListTopics; set => ListTopics = value; }
+
+       
+
         public static Dictionary<Profile, Receiver> _ConnectedUsers { get => ConnectedUsers; set => ConnectedUsers = value; }
 
         public Server(int port)
@@ -33,8 +42,13 @@ namespace Projet
            // newTopic("Programming");
             //SerializeTopicList();
             DeserializeTopicList();
+            profils.Deserialize();
 
 
+        }
+        public static void checkUserInTopic(TopicMessage msgTopic,Receiver r)
+        {
+            
         }
         public void SerializeTopicList()
         {
@@ -93,12 +107,40 @@ namespace Projet
             }
 
         }
+        /*
         public static void BroadcastTheMessage(Message msg)
         {
             foreach (Receiver User in ConnectedUsers.Values)
             {
                 Net.SendMsg(User.Comm.GetStream(), msg);
             }
+        }
+        */
+        public static Boolean ProfileRegister(AuthMessage msg)
+        {
+           if(!profils.CheckPossiblRegister(msg.P.Username))
+            {
+                return false;
+            }
+            profils.add(msg.P);
+            profils.SerializeProfileList();
+            return true;
+        }
+
+        public static Boolean Identification(AuthMessage msg)
+        {
+           
+            Console.WriteLine("Identification");
+            if (profils.contains(msg.P))
+            {
+                return true;
+            }
+            else
+            {
+                //send bool false
+                return false;
+            }
+           
         }
         public void start()
         {
@@ -109,10 +151,11 @@ namespace Projet
             {
                 
                 TcpClient comm = l.AcceptTcpClient();
-                Profile newProfileConnected = Net.RcvIdentity(comm.GetStream());
-                Console.WriteLine("Connection established with @" + newProfileConnected.Username);
+                //Profile newProfileConnected = Net.RcvIdentity(comm.GetStream());
+                //Console.WriteLine("Connection established with @" + newProfileConnected.Username);
+                Console.WriteLine("Connection etablished");
                 Receiver newUser = new Receiver(comm);
-                ConnectedUsers.Add(newProfileConnected, newUser);
+                //ConnectedUsers.Add(newProfileConnected, newUser);
 
                 new Thread(newUser.doOperation).Start();
 

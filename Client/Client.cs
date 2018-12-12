@@ -42,12 +42,8 @@ namespace Client
         public void start()
         {
 
-            ProfilsContainer profils = new ProfilsContainer();
-           /* profils.add(new Profile("Julien", "Julien"));
-            profils.add(new Profile("Greg", "Greg"));
-            profils.SerializeProfileList();*/
-
-            profils.Deserialize();
+            comm = new TcpClient(hostname, port);
+            Console.WriteLine("Connection established");
             Profile tryProfile;
             string choix;
             do
@@ -55,16 +51,42 @@ namespace Client
                 Console.WriteLine("Avez vous déja un compte ? yes/no");
                 choix = Console.ReadLine();
             } while (!choix.Equals("yes") && !choix.Equals("no"));
+            AuthMessage verifauth;
             if (choix.Equals("yes"))
             {
-              
-                tryProfile = Identification(profils);
+               
+                do
+                {
+
+                   tryProfile= AskInformations();
+                    Message auth = new AuthMessage("Login", tryProfile);
+                    Net.SendMsg(comm.GetStream(), auth);
+                    verifauth = (AuthMessage)Net.rcvMsg(comm.GetStream());
+                    if (!verifauth.Success)
+                    {
+                        Console.WriteLine("Utilisateur inconnu");
+                    }
+                } while (!verifauth.Success);
+                Console.WriteLine("Login validé par le serveur");
+               
 
             }
             else
             {
 
-                tryProfile = ProfileRegister(profils);
+                do
+                {
+
+                    tryProfile = AskInformations();
+                    Message auth = new AuthMessage("Register", tryProfile);
+                    Net.SendMsg(comm.GetStream(), auth);
+                    verifauth = (AuthMessage)Net.rcvMsg(comm.GetStream());
+                    if (!verifauth.Success)
+                    {
+                        Console.WriteLine("N'as pas pu etre ajouté, le nom est déja pris");
+                    }
+                } while (!verifauth.Success);
+                Console.WriteLine("Enrengistrement validé par le serveur"); ;
             }
 
             Console.WriteLine("Welcome to the client interface");
@@ -82,10 +104,7 @@ namespace Client
                     displayAllTopics();
                      Destination = Console.ReadLine();
                     //Please use the Dest String
-                    comm = new TcpClient(hostname, port);
-                    //Send identity, la recevoir dans server avant de lancer le thread. Devra surement etre synchronize.
-                    Net.SendIdentity(comm.GetStream(), tryProfile);
-                    Console.WriteLine("Connection established");
+  
 
 
                     //Lance la reception des messages
@@ -93,7 +112,7 @@ namespace Client
 
                     break;
                 case "B":
-                    comm = new TcpClient(hostname, port);
+                    //comm = new TcpClient(hostname, port);
                     //Send identity, la recevoir dans server avant de lancer le thread. Devra surement etre synchronize.
                     Net.SendIdentity(comm.GetStream(), tryProfile);
                     Console.WriteLine("Connection established");
@@ -108,6 +127,19 @@ namespace Client
                     break;
             }
           
+        }
+
+        private static Profile AskInformations()
+        {
+            string name;
+            string psw;
+            Console.Write("Your name : ");
+            name = Console.ReadLine();
+            Console.WriteLine();
+            Console.Write("Your password  : ");
+            psw = Console.ReadLine();
+           Profile tryProfile = new Profile(name, psw);
+            return tryProfile;
         }
 
         private void SendingPersonalMesage(Profile tryProfile)
@@ -142,35 +174,6 @@ namespace Client
             }
         }
 
-        private Profile ProfileRegister(ProfilsContainer profils)
-        {
-            string name;
-            string psw;
-            Console.Write("Your name : ");
-            name = Console.ReadLine();
-            Console.WriteLine();
-            Console.Write("Your password  : ");
-            psw = Console.ReadLine();
-            Profile p = new Profile(name, psw);
-            profils.add(p);
-            profils.SerializeProfileList();
-            return p;
-        }
-
-        private Profile Identification(ProfilsContainer profils)
-        {
-            Profile tryProfile;
-            Console.WriteLine("Identification");
-            do
-            {
-
-                Console.WriteLine("Votre nom ?");
-                string name = Console.ReadLine();
-                Console.WriteLine("Votre mdp ?");
-                string mdp = Console.ReadLine();
-                tryProfile = new Profile(name, mdp);
-            } while (!profils.contains(tryProfile));
-            return tryProfile;
-        }
+        
     }
 }
