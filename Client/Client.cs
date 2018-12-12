@@ -53,6 +53,7 @@ namespace Client
                     verifauth = (AuthMessage)Net.rcvMsg(comm.GetStream());
                     if (!verifauth.Success)
                     {
+                       
                         Console.WriteLine("Utilisateur inconnu");
                     }
                 } while (!verifauth.Success);
@@ -75,8 +76,8 @@ namespace Client
                 } while (!verifauth.Success);
                 Console.WriteLine("Enrengistrement validé par le serveur"); ;
             }
+           
 
-          
             do
             {
                 Console.WriteLine("Welcome to the client interface");
@@ -114,6 +115,8 @@ namespace Client
                         Console.WriteLine(msg.Msg);
                         break;
                     case "E":
+                        Console.WriteLine("to whom do you want to talk ?");
+                        Destination = Console.ReadLine();
                         SendingPersonalMesage(tryProfile);
                         break;
 
@@ -121,11 +124,12 @@ namespace Client
                         Console.WriteLine("Invalide");
                         break;
                 }
+                new Thread(RecieveMessage).Start();
             } while (!choix.Equals("exit"));
 
         }
 
-
+         
 
         private static Profile AskInformations()
         {
@@ -140,32 +144,20 @@ namespace Client
             return tryProfile;
         }
 
-        private void SendingPersonalMesage(Profile tryProfile)
-        {
-            throw new NotImplementedException();
-        }
+       
 
         private void displayAllTopics()
         {
-            //Reception AllTopics
+            
             Message msg = Net.rcvMsg(comm.GetStream());
             Console.WriteLine(msg.Msg);
-            /*
-            List<String> Topics = new List<String>();
-            IFormatter formater = new BinaryFormatter();
-            Stream stream = new FileStream("D:\\EFREI\\S7\\C#\\Projet\\AllTopics.txt", FileMode.Open, FileAccess.Read);
-            Topics = (List<String>)formater.Deserialize(stream);
-            foreach (String topic in Topics)
-            {
-                Console.WriteLine(topic);
-            }
-            stream.Close();
-            */
+          
 
 
         }
         public void RecieveMessage()
         {
+
             while (true)
             {
                 Message msg = Net.rcvMsg(comm.GetStream());
@@ -174,16 +166,29 @@ namespace Client
                 Console.WriteLine(msg.P.Username + " says : " + msg.Msg);
             }
         }
+       
         private void CreateTopicRequest(Profile tryProfile)
         {
             Message msg = new TopicMessage("Creation", tryProfile, Destination);
             Net.SendMsg(comm.GetStream(), msg);
             SendingMessageTopic(tryProfile);
         }
+        private void SendingPersonalMesage(Profile tryProfile)
+        {
+            
+            while (true)
+            {
+                string message = Console.ReadLine();
+                Message msg = new Private_Message(message, tryProfile, Destination);
+                Net.SendMsg(comm.GetStream(), msg);
+            }
+        }
         private void SendingMessageTopic(Profile tryProfile)
         {
-            new Thread(RecieveMessage).Start();
+
+             new Thread(RecieveMessage).Start();
             //send
+         // new Thread(RecieveMessage).Start();
             Console.WriteLine("Welcome on this topic !!!! Here we talk about : " + Destination);
             while (true)
             {
