@@ -44,6 +44,7 @@
   <ItemGroup>
     <Compile Include="Message\AuthMessage.cs" />
     <Compile Include="Message\Message.cs" />
+    <Compile Include="Message\RequestMessage.cs" />
     <Compile Include="Net.cs" />
     <Compile Include="Message\Private_Message.cs" />
     <Compile Include="Profile\Profile.cs" />

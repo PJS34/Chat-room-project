@@ -37,12 +37,15 @@ namespace Projet
                     if (msgTopic.Msg.Equals("Creation") && !Server.CheckExistingTopic(msgTopic.TopicName))
                     {
                         Server.newTopic(msgTopic.TopicName);
-                        
+
                     }
-                    
-                    Server.checkUserInTopic(msgTopic,this);
-                    //ListTopics[msgTopic.TopicName]
-                    Server.BroadcastByTopic(msgTopic);
+                    else
+                    {
+
+                        Server.checkUserInTopic(msgTopic, this);
+                        //ListTopics[msgTopic.TopicName]
+                        Server.BroadcastByTopic(msgTopic);
+                    }
                 }
                 else if (msg.GetType().Equals(typeof(AuthMessage)))
                 {
@@ -52,12 +55,14 @@ namespace Projet
                         if (Server.Identification(auth))
                         {
                             auth.Success = true;
+                            Server.newUserConnected(auth.P, this);
                         }else
                         {
                             auth.Success = false;
                         }
                     
                         Net.SendMsg(comm.GetStream(), auth);
+                     
                     }
                     else if (auth.Msg.Equals("Register"))
                     {
@@ -72,6 +77,18 @@ namespace Projet
 
                         Net.SendMsg(comm.GetStream(), auth);
                     }
+                    
+                }else if (msg.GetType().Equals(typeof(RequestMessage)))
+                {
+                    RequestMessage reqmsg = (RequestMessage)msg;
+                    if (reqmsg.Msg.Equals("RequireListTopic"))
+                    {
+                        reqmsg.Msg = Server.getListTopics();
+                    }else if (reqmsg.Msg.Equals("RequireListUsers"))
+                    {
+                        reqmsg.Msg = Server.getConnectedUsers();
+                    }
+                    Net.SendMsg(comm.GetStream(), reqmsg);
                     
                 }
 

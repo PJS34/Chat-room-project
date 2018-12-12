@@ -29,16 +29,7 @@ namespace Client
             comm = null;
         }
 
-        public void RecieveMessage()
-        {
-            while (true)
-            {
-                Message msg = Net.rcvMsg(comm.GetStream());
 
-                //Console.WriteLine(msg);
-                Console.WriteLine(msg.P.Username + " says : " + msg.Msg);
-            }
-        }
         public void start()
         {
 
@@ -54,11 +45,9 @@ namespace Client
             AuthMessage verifauth;
             if (choix.Equals("yes"))
             {
-               
                 do
                 {
-
-                   tryProfile= AskInformations();
+                    tryProfile = AskInformations();
                     Message auth = new AuthMessage("Login", tryProfile);
                     Net.SendMsg(comm.GetStream(), auth);
                     verifauth = (AuthMessage)Net.rcvMsg(comm.GetStream());
@@ -68,8 +57,6 @@ namespace Client
                     }
                 } while (!verifauth.Success);
                 Console.WriteLine("Login validé par le serveur");
-               
-
             }
             else
             {
@@ -89,50 +76,56 @@ namespace Client
                 Console.WriteLine("Enrengistrement validé par le serveur"); ;
             }
 
-            Console.WriteLine("Welcome to the client interface");
-            Console.WriteLine("Please choose what do you want to do : ");
-            Console.WriteLine("A) Join a Topic");
-            Console.WriteLine("B) Add a Topic");
-            Console.WriteLine("C) Send a private Message");
-            choix = Console.ReadLine();
-            switch (choix)
-            {
-                case "A":
-
-                    Console.WriteLine("Please choose a topic : ");
-                    //choose a topic
-                    //displayAllTopics, passer par la serialization deserialization dans un fichier txt
-                    displayAllTopics();
-                     Destination = Console.ReadLine();
-                    //Please use the Dest String
-  
-
-
-                    //Lance la reception des messages
-                    SendingMessageTopic(tryProfile);
-
-                    break;
-                case "B":
-                    Console.WriteLine("What is the new subject ?");
-                    Destination = Console.ReadLine();
-                    CreateTopicRequest(tryProfile);
-                    break;
-                case "C":
-                    Console.WriteLine("Connection established");
-
-
-                    //Lance la reception des messages
-                    SendingPersonalMesage(tryProfile);
-                    //Choose a user
-                    break;
-                default:
-                    Console.WriteLine("Invalide");
-                    break;
-            }
           
+            do
+            {
+                Console.WriteLine("Welcome to the client interface");
+                Console.WriteLine("Please choose what do you want to do : ");
+                Console.WriteLine("A) Join a Topic");
+                Console.WriteLine("B) Add a Topic");
+                Console.WriteLine("C) ListTheTopics");
+                Console.WriteLine("D) ListConnectedUsers");
+                Console.WriteLine("E) Send a private Message");
+                choix = Console.ReadLine();
+                switch (choix)
+                {
+                    case "A":
+
+                        Console.WriteLine("Please choose a topic : ");
+                        Destination = Console.ReadLine();
+                        SendingMessageTopic(tryProfile);
+
+                        break;
+                    case "B":
+                        Console.WriteLine("What is the new subject ?");
+                        Destination = Console.ReadLine();
+                        CreateTopicRequest(tryProfile);
+                        break;
+                    case "C":
+                        Message msg = new RequestMessage("RequireListTopic", tryProfile);
+                        Net.SendMsg(comm.GetStream(), msg);
+                        msg = Net.rcvMsg(comm.GetStream());
+                        Console.WriteLine(msg.Msg);
+                        break;
+                    case "D":
+                        Message msg2 = new RequestMessage("RequireListUsers", tryProfile);
+                        Net.SendMsg(comm.GetStream(), msg2);
+                        msg = Net.rcvMsg(comm.GetStream());
+                        Console.WriteLine(msg.Msg);
+                        break;
+                    case "E":
+                        SendingPersonalMesage(tryProfile);
+                        break;
+
+                    default:
+                        Console.WriteLine("Invalide");
+                        break;
+                }
+            } while (!choix.Equals("exit"));
+
         }
 
-       
+
 
         private static Profile AskInformations()
         {
@@ -143,7 +136,7 @@ namespace Client
             Console.WriteLine();
             Console.Write("Your password  : ");
             psw = Console.ReadLine();
-           Profile tryProfile = new Profile(name, psw);
+            Profile tryProfile = new Profile(name, psw);
             return tryProfile;
         }
 
@@ -154,6 +147,10 @@ namespace Client
 
         private void displayAllTopics()
         {
+            //Reception AllTopics
+            Message msg = Net.rcvMsg(comm.GetStream());
+            Console.WriteLine(msg.Msg);
+            /*
             List<String> Topics = new List<String>();
             IFormatter formater = new BinaryFormatter();
             Stream stream = new FileStream("D:\\EFREI\\S7\\C#\\Projet\\AllTopics.txt", FileMode.Open, FileAccess.Read);
@@ -163,8 +160,19 @@ namespace Client
                 Console.WriteLine(topic);
             }
             stream.Close();
+            */
 
 
+        }
+        public void RecieveMessage()
+        {
+            while (true)
+            {
+                Message msg = Net.rcvMsg(comm.GetStream());
+
+                //Console.WriteLine(msg);
+                Console.WriteLine(msg.P.Username + " says : " + msg.Msg);
+            }
         }
         private void CreateTopicRequest(Profile tryProfile)
         {
@@ -176,15 +184,15 @@ namespace Client
         {
             new Thread(RecieveMessage).Start();
             //send
-            Console.WriteLine("Welcome on this topic !!!! Here we talk about " + Destination);
+            Console.WriteLine("Welcome on this topic !!!! Here we talk about : " + Destination);
             while (true)
             {
                 string message = Console.ReadLine();
-                Message msg = new TopicMessage(message, tryProfile,Destination);
+                Message msg = new TopicMessage(message, tryProfile, Destination);
                 Net.SendMsg(comm.GetStream(), msg);
             }
         }
 
-        
+
     }
 }

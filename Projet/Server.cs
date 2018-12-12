@@ -21,9 +21,11 @@ namespace Projet
         /* profils.add(new Profile("Julien", "Julien"));
          profils.add(new Profile("Greg", "Greg"));
          profils.SerializeProfileList();*/
-
+         
 
         // private static List<Receiver> ConnectedUsers;
+        private static Object ListTopicSecure = new Object();
+        private static Object ListUserSecSecure = new Object();
         private static Dictionary<Profile, Receiver> ConnectedUsers;
         private static Dictionary<String, List<Receiver>> ListTopics;
 
@@ -52,7 +54,9 @@ namespace Projet
         {
             if (!ListTopics[msgTopic.TopicName].Contains(r))
             {
+                while (!Monitor.TryEnter(ListTopicSecure)) ;
                 ListTopics[msgTopic.TopicName].Add(r);
+                Monitor.Exit(ListTopicSecure);
             }
 
         }
@@ -70,7 +74,9 @@ namespace Projet
             //ListTopicsName = ListTopics.Keys;
             foreach (String s in ListTopics.Keys)
             {
+                while (!Monitor.TryEnter(ListTopicSecure)) ;
                 ListTopicsName.Add(s);
+                Monitor.Exit(ListTopicSecure);
             }
 
             IFormatter formater = new BinaryFormatter();
@@ -89,16 +95,46 @@ namespace Projet
             foreach (String topic in ListTopicsName)
             {
                 List<Receiver> UserByTopic = new List<Receiver>();
+                while (!Monitor.TryEnter(ListTopicSecure)) ;
                 ListTopics.Add(topic, UserByTopic);
+                Monitor.Exit(ListTopicSecure);
             }
             stream.Close();
 
         }
+
+        public static string getListTopics()
+        {
+            StringBuilder str = new StringBuilder();
+            foreach(String s in ListTopics.Keys)
+            {
+                str.Append(s);
+                str.Append("\n");
+            }
+            return str.ToString();
+        }
+        public static string getConnectedUsers()
+        {
+            StringBuilder str = new StringBuilder();
+            foreach (Profile s in ConnectedUsers.Keys)
+            {
+                str.Append(s.Username);
+                str.Append("\n");
+            }
+            return str.ToString();
+        }
         public static void newTopic(string name)
         {
             List<Receiver> usersByTopic = new List<Receiver>();
+            while (!Monitor.TryEnter(ListTopicSecure)) ;
             ListTopics.Add(name, usersByTopic);
+            Monitor.Exit(ListTopicSecure);
             SerializeTopicList();
+            
+        }
+        public static void newUserConnected(Profile p, Receiver r)
+        {
+            ConnectedUsers.Add(p, r);
         }
 
 
@@ -137,6 +173,7 @@ namespace Projet
                 return false;
             }
             profils.add(msg.P);
+            
             profils.SerializeProfileList();
             return true;
         }

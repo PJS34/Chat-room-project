@@ -15,7 +15,7 @@ namespace Client
             Client c1 = new Client("127.0.0.1", 8976);
             c1.start();
             
-            Console.WriteLine("testing");
+            Console.WriteLine("EndClient");
           
            
            
