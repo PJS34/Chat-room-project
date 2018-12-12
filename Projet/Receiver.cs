@@ -33,8 +33,13 @@ namespace Projet
                 //Use message polymorphism
                 if (msg.GetType().Equals(typeof(TopicMessage)))
                 {
-                   
                     TopicMessage msgTopic = (TopicMessage)msg;
+                    if (msgTopic.Msg.Equals("Creation") && !Server.CheckExistingTopic(msgTopic.TopicName))
+                    {
+                        Server.newTopic(msgTopic.TopicName);
+                        
+                    }
+                    
                     Server.checkUserInTopic(msgTopic,this);
                     //ListTopics[msgTopic.TopicName]
                     Server.BroadcastByTopic(msgTopic);

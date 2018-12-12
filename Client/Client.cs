@@ -92,7 +92,8 @@ namespace Client
             Console.WriteLine("Welcome to the client interface");
             Console.WriteLine("Please choose what do you want to do : ");
             Console.WriteLine("A) Join a Topic");
-            Console.WriteLine("B) Send a private Message");
+            Console.WriteLine("B) Add a Topic");
+            Console.WriteLine("C) Send a private Message");
             choix = Console.ReadLine();
             switch (choix)
             {
@@ -112,9 +113,11 @@ namespace Client
 
                     break;
                 case "B":
-                    //comm = new TcpClient(hostname, port);
-                    //Send identity, la recevoir dans server avant de lancer le thread. Devra surement etre synchronize.
-                    Net.SendIdentity(comm.GetStream(), tryProfile);
+                    Console.WriteLine("What is the new subject ?");
+                    Destination = Console.ReadLine();
+                    CreateTopicRequest(tryProfile);
+                    break;
+                case "C":
                     Console.WriteLine("Connection established");
 
 
@@ -128,6 +131,8 @@ namespace Client
             }
           
         }
+
+       
 
         private static Profile AskInformations()
         {
@@ -161,11 +166,17 @@ namespace Client
 
 
         }
-
+        private void CreateTopicRequest(Profile tryProfile)
+        {
+            Message msg = new TopicMessage("Creation", tryProfile, Destination);
+            Net.SendMsg(comm.GetStream(), msg);
+            SendingMessageTopic(tryProfile);
+        }
         private void SendingMessageTopic(Profile tryProfile)
         {
             new Thread(RecieveMessage).Start();
             //send
+            Console.WriteLine("Welcome on this topic !!!! Here we talk about " + Destination);
             while (true)
             {
                 string message = Console.ReadLine();

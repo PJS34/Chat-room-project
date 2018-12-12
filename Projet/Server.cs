@@ -17,44 +17,54 @@ namespace Projet
     public class Server
     {
         private int port;
-       private static ProfilsContainer profils = new ProfilsContainer();
+        private static ProfilsContainer profils = new ProfilsContainer();
         /* profils.add(new Profile("Julien", "Julien"));
          profils.add(new Profile("Greg", "Greg"));
          profils.SerializeProfileList();*/
 
-        
+
         // private static List<Receiver> ConnectedUsers;
         private static Dictionary<Profile, Receiver> ConnectedUsers;
         private static Dictionary<String, List<Receiver>> ListTopics;
 
         public static Dictionary<String, List<Receiver>> _ListTopics { get => ListTopics; set => ListTopics = value; }
 
-       
+
 
         public static Dictionary<Profile, Receiver> _ConnectedUsers { get => ConnectedUsers; set => ConnectedUsers = value; }
+
+
 
         public Server(int port)
         {
             this.port = port;
             ConnectedUsers = new Dictionary<Profile, Receiver>();
             ListTopics = new Dictionary<String, List<Receiver>>();
-           // newTopic("C#");
-           // newTopic("Programming");
+            // newTopic("C#");
+            // newTopic("Programming");
             //SerializeTopicList();
             DeserializeTopicList();
             profils.Deserialize();
 
 
         }
-        public static void checkUserInTopic(TopicMessage msgTopic,Receiver r)
+        public static void checkUserInTopic(TopicMessage msgTopic, Receiver r)
         {
             if (!ListTopics[msgTopic.TopicName].Contains(r))
             {
                 ListTopics[msgTopic.TopicName].Add(r);
             }
-            
+
         }
-        public void SerializeTopicList()
+        public static bool CheckExistingTopic(string topicName)
+        {
+            if (ListTopics.Keys.Contains(topicName))
+            {
+                return true;
+            }
+            return false;
+        }
+        public static void SerializeTopicList()
         {
             List<String> ListTopicsName = new List<String>();
             //ListTopicsName = ListTopics.Keys;
@@ -62,7 +72,7 @@ namespace Projet
             {
                 ListTopicsName.Add(s);
             }
-           
+
             IFormatter formater = new BinaryFormatter();
             Stream stream = new FileStream("D:\\EFREI\\S7\\C#\\Projet\\AllTopics.txt", FileMode.Create, FileAccess.Write);
             formater.Serialize(stream, ListTopicsName);
@@ -84,7 +94,7 @@ namespace Projet
             stream.Close();
 
         }
-        public void newTopic(string name)
+        public static void newTopic(string name)
         {
             List<Receiver> usersByTopic = new List<Receiver>();
             ListTopics.Add(name, usersByTopic);
@@ -92,7 +102,7 @@ namespace Projet
         }
 
 
-   
+
 
         public static void BroadcastByTopic(TopicMessage msg)
         {
@@ -122,7 +132,7 @@ namespace Projet
         */
         public static Boolean ProfileRegister(AuthMessage msg)
         {
-           if(!profils.CheckPossiblRegister(msg.P.Username))
+            if (!profils.CheckPossiblRegister(msg.P.Username))
             {
                 return false;
             }
@@ -133,7 +143,7 @@ namespace Projet
 
         public static Boolean Identification(AuthMessage msg)
         {
-           
+
             Console.WriteLine("Identification");
             if (profils.contains(msg.P))
             {
@@ -144,7 +154,7 @@ namespace Projet
                 //send bool false
                 return false;
             }
-           
+
         }
         public void start()
         {
@@ -153,7 +163,7 @@ namespace Projet
             Console.WriteLine("Stating the server");
             while (true)
             {
-                
+
                 TcpClient comm = l.AcceptTcpClient();
                 //Profile newProfileConnected = Net.RcvIdentity(comm.GetStream());
                 //Console.WriteLine("Connection established with @" + newProfileConnected.Username);
