@@ -48,6 +48,10 @@ namespace Projet
         }
         public static void checkUserInTopic(TopicMessage msgTopic,Receiver r)
         {
+            if (!ListTopics[msgTopic.TopicName].Contains(r))
+            {
+                ListTopics[msgTopic.TopicName].Add(r);
+            }
             
         }
         public void SerializeTopicList()

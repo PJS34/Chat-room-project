@@ -1,6 +1,7 @@
 ﻿
 using Communication;
 using System;
+using System.Collections.Generic;
 using System.Net.Sockets;
 
 namespace Projet
@@ -74,6 +75,22 @@ namespace Projet
 
             }
 
+        }
+
+        public override bool Equals(object obj)
+        {
+            var receiver = obj as Receiver;
+            return receiver != null &&
+                   EqualityComparer<TcpClient>.Default.Equals(comm, receiver.comm) &&
+                   EqualityComparer<TcpClient>.Default.Equals(Comm, receiver.Comm);
+        }
+
+        public override int GetHashCode()
+        {
+            var hashCode = -868753382;
+            hashCode = hashCode * -1521134295 + EqualityComparer<TcpClient>.Default.GetHashCode(comm);
+            hashCode = hashCode * -1521134295 + EqualityComparer<TcpClient>.Default.GetHashCode(Comm);
+            return hashCode;
         }
     }
 }
