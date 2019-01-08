@@ -21,7 +21,7 @@ namespace Projet
         /* profils.add(new Profile("Julien", "Julien"));
          profils.add(new Profile("Greg", "Greg"));
          profils.SerializeProfileList();*/
-         
+
 
         // private static List<Receiver> ConnectedUsers;
         private static Object ListTopicSecure = new Object();
@@ -56,6 +56,16 @@ namespace Projet
             {
                 while (!Monitor.TryEnter(ListTopicSecure)) ;
                 ListTopics[msgTopic.TopicName].Add(r);
+                Monitor.Exit(ListTopicSecure);
+            }
+
+        }
+        public static void DeleteUserInTopic(TopicMessage msgTopic, Receiver r)
+        {
+            if (ListTopics[msgTopic.TopicName].Contains(r))
+            {
+                while (!Monitor.TryEnter(ListTopicSecure)) ;
+                ListTopics[msgTopic.TopicName].Remove(r);
                 Monitor.Exit(ListTopicSecure);
             }
 
@@ -106,7 +116,7 @@ namespace Projet
         public static string getListTopics()
         {
             StringBuilder str = new StringBuilder();
-            foreach(String s in ListTopics.Keys)
+            foreach (String s in ListTopics.Keys)
             {
                 str.Append(s);
                 str.Append("\n");
@@ -130,7 +140,7 @@ namespace Projet
             ListTopics.Add(name, usersByTopic);
             Monitor.Exit(ListTopicSecure);
             SerializeTopicList();
-            
+
         }
         public static void newUserConnected(Profile p, Receiver r)
         {
@@ -173,7 +183,7 @@ namespace Projet
                 return false;
             }
             profils.add(msg.P);
-            
+
             profils.SerializeProfileList();
             return true;
         }
@@ -182,7 +192,7 @@ namespace Projet
         {
 
             Console.WriteLine("Identification");
-            if (profils.contains(msg.P))
+            if (profils.contains(msg.P) && !ConnectedUsers.Keys.Contains(msg.P))
             {
                 return true;
             }
@@ -193,6 +203,18 @@ namespace Projet
             }
 
         }
+        public static void SendPrivateMessage(Private_Message msg){
+            Console.WriteLine("Sending Private message");
+            foreach (Profile p in ConnectedUsers.Keys)
+            {
+               
+                if (p.Username.Equals(msg.NameDest1))
+                {
+                    Console.WriteLine("found");
+                    Net.SendMsg(ConnectedUsers[p].Comm.GetStream(), msg);
+                }
+            }
+        }
         public void start()
         {
             TcpListener l = new TcpListener(new IPAddress(new byte[] { 127, 0, 0, 1 }), port);
@@ -202,14 +224,15 @@ namespace Projet
             {
 
                 TcpClient comm = l.AcceptTcpClient();
+                TcpClient comm2 = l.AcceptTcpClient();
                 //Profile newProfileConnected = Net.RcvIdentity(comm.GetStream());
                 //Console.WriteLine("Connection established with @" + newProfileConnected.Username);
                 Console.WriteLine("Connection etablished");
-                Receiver newUser = new Receiver(comm);
+                Receiver newUser = new Receiver(comm,comm2);
                 //ConnectedUsers.Add(newProfileConnected, newUser);
 
                 new Thread(newUser.doOperation).Start();
-
+                new Thread(newUser.doOperationInformations).Start();
 
             }
 

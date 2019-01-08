@@ -22,11 +22,15 @@ namespace Client
         private String Destination;
 
         private TcpClient comm;
+        private TcpClient comm2;
+        private static Semaphore sem;
         public Client(string h, int p)
         {
             hostname = h;
             port = p;
             comm = null;
+            comm2 = null;
+            sem = new Semaphore(0, 1);
         }
 
 
@@ -34,6 +38,7 @@ namespace Client
         {
 
             comm = new TcpClient(hostname, port);
+            comm2 = new TcpClient(hostname, port);
             Console.WriteLine("Connection established");
             Profile tryProfile;
             string choix;
@@ -53,8 +58,8 @@ namespace Client
                     verifauth = (AuthMessage)Net.rcvMsg(comm.GetStream());
                     if (!verifauth.Success)
                     {
-                       
-                        Console.WriteLine("Utilisateur inconnu");
+
+                        Console.WriteLine("Utilisateur inconnu ou déja connecté");
                     }
                 } while (!verifauth.Success);
                 Console.WriteLine("Login validé par le serveur");
@@ -76,8 +81,15 @@ namespace Client
                 } while (!verifauth.Success);
                 Console.WriteLine("Enrengistrement validé par le serveur"); ;
             }
-           
+            new Thread(RecieveMessage).Start();
+            // new Thread(RecievePersonalMessage).Start();
+            choix = LaunchMenu(tryProfile);
 
+        }
+
+        private string LaunchMenu(Profile tryProfile)
+        {
+            string choix;
             do
             {
                 Console.WriteLine("Welcome to the client interface");
@@ -103,15 +115,17 @@ namespace Client
                         CreateTopicRequest(tryProfile);
                         break;
                     case "C":
+                        sem.WaitOne();
                         Message msg = new RequestMessage("RequireListTopic", tryProfile);
-                        Net.SendMsg(comm.GetStream(), msg);
-                        msg = Net.rcvMsg(comm.GetStream());
+                        Net.SendMsg(comm2.GetStream(), msg);
+                        msg = Net.rcvMsg(comm2.GetStream());
                         Console.WriteLine(msg.Msg);
+                        sem.Release();
                         break;
                     case "D":
                         Message msg2 = new RequestMessage("RequireListUsers", tryProfile);
-                        Net.SendMsg(comm.GetStream(), msg2);
-                        msg = Net.rcvMsg(comm.GetStream());
+                        Net.SendMsg(comm2.GetStream(), msg2);
+                        msg = Net.rcvMsg(comm2.GetStream());
                         Console.WriteLine(msg.Msg);
                         break;
                     case "E":
@@ -124,13 +138,19 @@ namespace Client
                         Console.WriteLine("Invalide");
                         break;
                 }
-                new Thread(RecieveMessage).Start();
+                //  new Thread(RecieveMessage).Start();
             } while (!choix.Equals("exit"));
-
+            return choix;
         }
 
-         
-
+        private Boolean BackToMenu(String s)
+        {
+            if (s.Equals("quit"))
+            {
+                return true;
+            }
+            return false;
+        }
         private static Profile AskInformations()
         {
             string name;
@@ -155,15 +175,24 @@ namespace Client
 
 
         }
+      
         public void RecieveMessage()
         {
 
             while (true)
             {
+                
+               
                 Message msg = Net.rcvMsg(comm.GetStream());
-
-                //Console.WriteLine(msg);
-                Console.WriteLine(msg.P.Username + " says : " + msg.Msg);
+                if (msg.GetType().Equals(typeof(Private_Message)))
+                {
+                    Console.WriteLine(msg.P.Username + " says personally : " + msg.Msg);
+                }
+                else
+                {
+                    //Console.WriteLine(msg);
+                    Console.WriteLine(msg.P.Username + " says : " + msg.Msg);
+                }
             }
         }
        
@@ -175,10 +204,14 @@ namespace Client
         }
         private void SendingPersonalMesage(Profile tryProfile)
         {
-            
+            Console.WriteLine("Send private message");
             while (true)
             {
                 string message = Console.ReadLine();
+                if (message.Equals("quit"))
+                {
+                    break;
+                }
                 Message msg = new Private_Message(message, tryProfile, Destination);
                 Net.SendMsg(comm.GetStream(), msg);
             }
@@ -186,15 +219,20 @@ namespace Client
         private void SendingMessageTopic(Profile tryProfile)
         {
 
-             new Thread(RecieveMessage).Start();
-            //send
-         // new Thread(RecieveMessage).Start();
+            TopicMessage msgTopic = new TopicMessage("InscriptionTopic", tryProfile, Destination);
+            Net.SendMsg(comm2.GetStream(), msgTopic);
             Console.WriteLine("Welcome on this topic !!!! Here we talk about : " + Destination);
             while (true)
             {
+                
                 string message = Console.ReadLine();
+                
                 Message msg = new TopicMessage(message, tryProfile, Destination);
                 Net.SendMsg(comm.GetStream(), msg);
+                if (message.Equals("quit"))
+                {
+                    break;
+                }
             }
         }
 

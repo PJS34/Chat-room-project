@@ -10,13 +10,15 @@ namespace Projet
     public class Receiver
     {
         private TcpClient comm;
-
-        public Receiver(TcpClient s)
+        private TcpClient comm2;
+        public Receiver(TcpClient s, TcpClient s2)
         {
             comm = s;
+            comm2 = s2;
         }
 
         public TcpClient Comm { get => comm; }
+        public TcpClient Comm2 { get => comm2; }
 
         public void doOperation()
         {
@@ -41,10 +43,16 @@ namespace Projet
                     }
                     else
                     {
-
-                        Server.checkUserInTopic(msgTopic, this);
-                        //ListTopics[msgTopic.TopicName]
-                        Server.BroadcastByTopic(msgTopic);
+                        if (msg.Msg.Equals("quit"))
+                        {
+                            Server.DeleteUserInTopic(msgTopic,this);
+                        }
+                        else
+                        {
+                           // Server.checkUserInTopic(msgTopic, this);
+                            //ListTopics[msgTopic.TopicName]
+                            Server.BroadcastByTopic(msgTopic);
+                        }
                     }
                 }
                 else if (msg.GetType().Equals(typeof(AuthMessage)))
@@ -56,13 +64,14 @@ namespace Projet
                         {
                             auth.Success = true;
                             Server.newUserConnected(auth.P, this);
-                        }else
+                        }
+                        else
                         {
                             auth.Success = false;
                         }
-                    
+
                         Net.SendMsg(comm.GetStream(), auth);
-                     
+
                     }
                     else if (auth.Msg.Equals("Register"))
                     {
@@ -77,19 +86,16 @@ namespace Projet
 
                         Net.SendMsg(comm.GetStream(), auth);
                     }
-                    
-                }else if (msg.GetType().Equals(typeof(RequestMessage)))
+
+
+
+                }
+                else if (msg.GetType().Equals(typeof(Private_Message)))
                 {
-                    RequestMessage reqmsg = (RequestMessage)msg;
-                    if (reqmsg.Msg.Equals("RequireListTopic"))
-                    {
-                        reqmsg.Msg = Server.getListTopics();
-                    }else if (reqmsg.Msg.Equals("RequireListUsers"))
-                    {
-                        reqmsg.Msg = Server.getConnectedUsers();
-                    }
-                    Net.SendMsg(comm.GetStream(), reqmsg);
-                    
+                    Console.WriteLine("Redirecting the private message");
+                    Private_Message msgPrivate = (Private_Message)msg;
+                    Server.SendPrivateMessage(msgPrivate);
+                    // Net.SendMsg(comm2.GetStream(), msg);
                 }
 
                 //Server.BroadcastTheMessage(msg);
@@ -113,6 +119,31 @@ namespace Projet
             hashCode = hashCode * -1521134295 + EqualityComparer<TcpClient>.Default.GetHashCode(comm);
             hashCode = hashCode * -1521134295 + EqualityComparer<TcpClient>.Default.GetHashCode(Comm);
             return hashCode;
+        }
+
+        internal void doOperationInformations()
+        {
+            Message msg = Net.rcvMsg(comm2.GetStream());
+            if (msg.GetType().Equals(typeof(TopicMessage)))
+            {
+                TopicMessage msgTopic = (TopicMessage)msg;
+                Server.checkUserInTopic(msgTopic, this);
+                
+            }
+               
+            if (msg.GetType().Equals(typeof(RequestMessage)))
+            {
+                RequestMessage reqmsg = (RequestMessage)msg;
+                if (reqmsg.Msg.Equals("RequireListTopic"))
+                {
+                    reqmsg.Msg = Server.getListTopics();
+                }
+                else if (reqmsg.Msg.Equals("RequireListUsers"))
+                {
+                    reqmsg.Msg = Server.getConnectedUsers();
+                }
+                Net.SendMsg(comm2.GetStream(), reqmsg);
+            }
         }
     }
 }

@@ -14,5 +14,7 @@ namespace Communication
         {
             this.NameDest = UserDest;
         }
+
+        public string NameDest1 { get => NameDest; set => NameDest = value; }
     }
 }
